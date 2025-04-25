@@ -911,8 +911,7 @@ void score_general_ce_nonanalog(Particle& p, int i_tally, int start_index,
           if (is_beta_effective_or_both()) {
             const auto& delayed_groups =
               simulation::ifp_source_delayed_group_bank[p.current_work() - 1];
-            int n_generation = static_cast<int>(delayed_groups.size());
-            if (n_generation == settings::ifp_n_generation) {
+            if (delayed_groups.size() == settings::ifp_n_generation) {
               if (delayed_groups[0] > 0) {
                 if (tally.delayedgroup_filter_ != C_NONE) {
                   filter_index = delayed_groups[0] - 1;

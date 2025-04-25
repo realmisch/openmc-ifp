@@ -123,7 +123,7 @@ class StatePoint:
         Version of OpenMC
     summary : None or openmc.Summary
         A summary object if the statepoint has been linked with a summary file
-    
+
     """
 
     def __init__(self, filepath, autolink=True):

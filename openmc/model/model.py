@@ -249,7 +249,7 @@ class Model:
         geometry = openmc.Geometry.from_xml(geometry, materials)
         settings = openmc.Settings.from_xml(settings)
         tallies = openmc.Tallies.from_xml(
-                tallies) if Path(tallies).exists() else None
+            tallies) if Path(tallies).exists() else None
         plots = openmc.Plots.from_xml(plots) if Path(plots).exists() else None
         return cls(geometry, materials, settings, tallies, plots)
 
@@ -272,15 +272,15 @@ class Model:
 
         meshes = {}
         model.settings = openmc.Settings.from_xml_element(
-                root.find('settings'), meshes)
+            root.find('settings'), meshes)
         model.materials = openmc.Materials.from_xml_element(
-                root.find('materials'))
+            root.find('materials'))
         model.geometry = openmc.Geometry.from_xml_element(
-                root.find('geometry'), model.materials)
+            root.find('geometry'), model.materials)
 
         if root.find('tallies') is not None:
             model.tallies = openmc.Tallies.from_xml_element(
-                    root.find('tallies'), meshes)
+                root.find('tallies'), meshes)
 
         if root.find('plots') is not None:
             model.plots = openmc.Plots.from_xml_element(root.find('plots'))
@@ -577,12 +577,12 @@ class Model:
             if self.tallies:
                 tallies_element = self.tallies.to_xml_element(mesh_memo)
                 xml.clean_indentation(
-                        tallies_element, level=1, trailing_indent=self.plots)
+                    tallies_element, level=1, trailing_indent=self.plots)
                 fh.write(ET.tostring(tallies_element, encoding="unicode"))
             if self.plots:
                 plots_element = self.plots.to_xml_element()
                 xml.clean_indentation(
-                        plots_element, level=1, trailing_indent=False)
+                    plots_element, level=1, trailing_indent=False)
                 fh.write(ET.tostring(plots_element, encoding="unicode"))
             fh.write("</model>\n")
 
@@ -704,6 +704,7 @@ class Model:
         apply_tally_results : bool
             Whether to apply results of the final statepoint file to the
             model's tally objects.
+
             .. versionadded:: 0.15.1
         **export_kwargs
             Keyword arguments passed to either :meth:`Model.export_to_model_xml`
@@ -776,6 +777,7 @@ class Model:
                 if mtime >= tstart:  # >= allows for poor clock resolution
                     tstart = mtime
                     last_statepoint = sp
+
         if apply_tally_results:
             self.apply_tally_results(last_statepoint)
 
@@ -896,6 +898,7 @@ class Model:
         **kwargs,
     ):
         """Display a slice plot of the model.
+
         .. versionadded:: 0.15.1
         """
         import matplotlib.image as mpimg
@@ -1084,7 +1087,9 @@ class Model:
             **init_kwargs
     ) -> openmc.ParticleList:
         """Sample external source and return source particles.
+
         .. versionadded:: 0.15.1
+
         Parameters
         ----------
         n_samples : int
@@ -1094,6 +1099,7 @@ class Model:
             generated randomly.
         **init_kwargs
             Keyword arguments passed to :func:`openmc.lib.init`
+
         Returns
         -------
         openmc.ParticleList
@@ -1118,6 +1124,7 @@ class Model:
 
     def apply_tally_results(self, statepoint: PathLike | openmc.StatePoint):
         """Apply results from a statepoint to tally objects on the Model
+
         Parameters
         ----------
         statepoint : PathLike or openmc.StatePoint
@@ -1379,7 +1386,9 @@ class Model:
 
     def differentiate_mats(self, diff_volume_method: str = None, depletable_only: bool = True):
         """Assign distribmats for each material
+
         .. versionadded:: 0.15.1
+        
         Parameters
         ----------
         diff_volume_method : str
@@ -1463,6 +1472,7 @@ class Model:
         strength spread across each of the energy groups. This is a highly naive
         method that ignores all spatial self shielding effects and all resonance
         shielding effects between materials.
+
         Parameters
         ----------
         groups : openmc.mgxs.EnergyGroups
@@ -1571,6 +1581,7 @@ class Model:
         layered slab geometry. To reduce the impact of the order of materials in
         the slab, the materials are applied to 'num_repeats' different randomly
         positioned layers of 'cell_thickness' each.
+
         Parameters
         ----------
         materials : list of openmc.Material
@@ -1580,6 +1591,7 @@ class Model:
             Thickness of each lattice cell in x (default 1.0 cm).
         num_repeats : int, optional
             Number of repeats for each material (default 100).
+
         Returns
         -------
         geometry : openmc.Geometry
@@ -1643,6 +1655,7 @@ class Model:
         of type. If this is a fixed source problem, a discrete source is used to
         sample particles, with an equal strength spread across each of the
         energy groups.
+
         Parameters
         ----------
         groups : openmc.mgxs.EnergyGroups
@@ -1740,6 +1753,7 @@ class Model:
         score any tallies to these material types, thus resulting in zero cross
         section values for these materials. For such cases, the "stochastic
         slab" method may be more appropriate.
+
         Parameters
         ----------
         groups : openmc.mgxs.EnergyGroups
@@ -1816,8 +1830,10 @@ class Model:
                               nparticles=2000, overwrite_mgxs_library=False,
                               mgxs_path: PathLike = "mgxs.h5", correction=None):
         """Convert all materials from continuous energy to multigroup.
+
         If no MGXS data library file is found, generate one using one or more
         continuous energy Monte Carlo simulations.
+
         Parameters
         ----------
         method : {"material_wise", "stochastic_slab", "infinite_medium"}, optional
@@ -1870,15 +1886,18 @@ class Model:
 
     def convert_to_random_ray(self):
         """Convert a multigroup model to use random ray.
+
         This method determines values for the needed settings and adds them to
         the settings.random_ray dictionary so as to enable random ray mode. The
         settings that are populated are:
+
         - 'ray_source' (openmc.IndependentSource): Where random ray starting
           points are sampled from.
         - 'distance_inactive' (float): The "dead zone" distance at the beginning
           of the ray.
         - 'distance_active' (float): The "active" distance of the ray
         - 'particles' (int): Number of rays to simulate
+
         The method will determine reasonable defaults for each of the above
         variables based on analysis of the model's geometry. The function will
         have no effect if the random ray dictionary is already defined in the
