@@ -205,8 +205,8 @@ class Model:
             if 'ifp-beta-numerator' in tally.scores:
                 existing_tallies['beta-num'] = True
             
-                if tally.contains_filter(openmc.DelayedGroupFilter):
-                    dg_filter = tally.find_filter(openmc.DelayedGroupFilter)
+            if tally.contains_filter(openmc.DelayedGroupFilter):
+                dg_filter = tally.find_filter(openmc.DelayedGroupFilter)
             
             if 'ifp-denominator' in tally.scores:
                 existing_tallies['ifp-denom'] = True
