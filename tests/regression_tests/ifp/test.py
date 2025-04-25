@@ -4,10 +4,10 @@ kinetics parameters using dedicated tallies."""
 import openmc
 import pytest
 
-from tests.testing_harness import PyAPITestHarness
+#from tests.testing_harness import PyAPITestHarness
 
 
-@pytest.fixture()
+#@pytest.fixture()
 def ifp_model():
     model = openmc.Model()
 
@@ -39,7 +39,8 @@ def ifp_model():
 
     return model
 
-
+model = ifp_model()
+model.run()
 def test_iterated_fission_probability(ifp_model):
     harness = PyAPITestHarness("statepoint.20.h5", model=ifp_model)
     harness.main()

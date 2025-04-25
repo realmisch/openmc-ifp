@@ -81,7 +81,7 @@ class Model:
         if plots is not None:
             self.plots = plots
 
-        if settings.iterated_fission_probability:
+        if settings._ifp_n_generation is not None:
             self._init_ifp()
 
     @property
@@ -198,24 +198,21 @@ class Model:
 
     def _init_ifp(self) -> None:
         """Automate tally creation for calculating Iterated Fission Probability kinetics parameters"""
-        param = self.settings.iterated_fission_probability['parameter']
-        if param == 'both' or param == 'generation_time':
-            gen_time_tally = openmc.Tally()
-            gen_time_tally.scores = ['ifp-time-numerator']
-            self._tallies.append(gen_time_tally)
+        gen_time_tally = openmc.Tally()
+        gen_time_tally.scores = ['ifp-time-numerator']
+        self._tallies.append(gen_time_tally)
 
-        if param == 'both' or param == 'beta_effective':
-            beta_tally = openmc.Tally()
-            beta_tally.scores = ['ifp-beta-numerator']
-            
-            has_dg_filter = False
-            for tally in self._tallies:
-                if tally.contains_filter(openmc.DelayedGroupFilter):
-                    has_dg_filter = True
-                    beta_tally.filters = [tally.find_filter(openmc.DelayedGroupFilter)]
-            if not has_dg_filter:
-                beta_tally.filters = [openmc.DelayedGroupFilter(list(range(1,7)))]
-            self._tallies.append(beta_tally)
+        beta_tally = openmc.Tally()
+        beta_tally.scores = ['ifp-beta-numerator']
+        
+        has_dg_filter = False
+        for tally in self._tallies:
+            if tally.contains_filter(openmc.DelayedGroupFilter):
+                has_dg_filter = True
+                beta_tally.filters = [tally.find_filter(openmc.DelayedGroupFilter)]
+        if not has_dg_filter:
+            beta_tally.filters = [openmc.DelayedGroupFilter(list(range(1,7)))]
+        self._tallies.append(beta_tally)
 
         denom_tally = openmc.Tally()
         denom_tally.scores = ['ifp-denominator']
