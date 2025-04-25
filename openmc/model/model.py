@@ -356,7 +356,9 @@ class Model:
         This method iterates over all DAGMC universes in the geometry and
         synchronizes their cells with the current material assignments. Requires
         that the model has been initialized via :meth:`Model.init_lib`.
+
         .. versionadded:: 0.15.1
+
         """
         if self.is_initialized:
             if self.materials:
@@ -1388,7 +1390,7 @@ class Model:
         """Assign distribmats for each material
 
         .. versionadded:: 0.15.1
-        
+
         Parameters
         ----------
         diff_volume_method : str
