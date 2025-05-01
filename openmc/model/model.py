@@ -204,13 +204,12 @@ class Model:
                 existing_tallies['time-num'] = True
             if 'ifp-beta-numerator' in tally.scores:
                 existing_tallies['beta-num'] = True
+            if 'ifp-denominator' in tally.scores:
+                existing_tallies['ifp-denom'] = True
             
             if tally.contains_filter(openmc.DelayedGroupFilter):
                 dg_filter = tally.find_filter(openmc.DelayedGroupFilter)
             
-            if 'ifp-denominator' in tally.scores:
-                existing_tallies['ifp-denom'] = True
-
         if not existing_tallies['time-num']:
             gen_time_tally = openmc.Tally()
             gen_time_tally.scores = ['ifp-time-numerator']

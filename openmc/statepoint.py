@@ -735,23 +735,23 @@ class StatePoint:
         """       
         result = {}
         try:
-            denom_tally = self.get_tally(scores = ['ifp-denominator'],exact_scores = True)
+            denom_tally = self.get_tally(scores = ['ifp-denominator'])
         except LookupError:
             raise LookupError('Iterated Fission Probability tally not found.') from None
-        denom_values = uarray(denom_tally.get_reshaped_data(),
-                              denom_tally.get_reshaped_data(value = 'rel_err'))
+        denom_values = uarray(denom_tally.get_values(scores = ['ifp-denominator']),
+                              denom_tally.get_values(scores = ['ifp-denominator'],value = 'rel_err'))
             
         if param == 'both' or param == 'generation_time':
-            gen_time_tally = self.get_tally(scores = ['ifp-time-numerator'],exact_scores = True)
-            gen_time_values = uarray(gen_time_tally.get_reshaped_data(),
-                                     gen_time_tally.get_reshaped_data(value = 'rel_err'))
+            gen_time_tally = self.get_tally(scores = ['ifp-time-numerator'])
+            gen_time_values = uarray(gen_time_tally.get_values(scores = ['ifp-time-numerator']),
+                                     gen_time_tally.get_values(scores = ['ifp-time-numerator'],value = 'rel_err'))
             gen_time_values /= denom_values*self.keff
             result['Generation Time'] = gen_time_values.flatten()
         
         if param == 'both' or param == 'beta_effective':
-            beta_tally = self.get_tally(scores = ['ifp-beta-numerator'],exact_scores = True)
-            beta_values = uarray(beta_tally.get_reshaped_data(),
-                                 beta_tally.get_reshaped_data(value = 'rel_err'))
+            beta_tally = self.get_tally(scores = ['ifp-beta-numerator'])
+            beta_values = uarray(beta_tally.get_values(scores = ['ifp-beta-numerator']),
+                                 beta_tally.get_values(scores = ['ifp-beta-numerator'],value = 'rel_err'))
             beta_values /= denom_values
             result['Beta Effective'] = beta_values.flatten()
 
