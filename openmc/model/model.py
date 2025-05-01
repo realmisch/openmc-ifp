@@ -69,11 +69,11 @@ class Model:
 
     def __init__(self, geometry=None, materials=None, settings=None,
                  tallies=None, plots=None):
-        self.geometry = openmc.Geometry() if geometry is not None else geometry
-        self.materials = openmc.Materials() if materials is not None else materials
-        self.settings = openmc.Settings() if settings is not None else settings
-        self.tallies = openmc.Tallies() if tallies is not None else tallies
-        self.plots = openmc.Plots() if plots is not None else plots
+        self.geometry = openmc.Geometry() if geometry is None else geometry
+        self.materials = openmc.Materials() if materials is None else materials
+        self.settings = openmc.Settings() if settings is None else settings
+        self.tallies = openmc.Tallies() if tallies is None else tallies
+        self.plots = openmc.Plots() if plots is None else plots
 
         if settings._ifp_n_generation is not None:
             self._init_ifp()
