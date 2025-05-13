@@ -75,7 +75,7 @@ class Model:
         self.tallies = openmc.Tallies() if tallies is None else tallies
         self.plots = openmc.Plots() if plots is None else plots
 
-        if settings._ifp_n_generation is not None:
+        if self.settings._ifp_n_generation is not None:
             self._init_ifp()
 
     @property

@@ -4,10 +4,9 @@ kinetics parameters using dedicated tallies."""
 import openmc
 import pytest
 
-#from tests.testing_harness import PyAPITestHarness
+from tests.testing_harness import PyAPITestHarness
 
-
-#@pytest.fixture()
+@pytest.fixture()
 def ifp_model():
     model = openmc.Model()
 
@@ -33,9 +32,9 @@ def ifp_model():
         space=space, constraints={'fissionable': True})
 
     # Tally IFP scores
-    # tally = openmc.Tally(name="ifp-scores")
-    # tally.scores = ["ifp-time-numerator", "ifp-beta-numerator", "ifp-denominator"]
-    # model.tallies = [tally]
+    tally = openmc.Tally(name="ifp-scores")
+    tally.scores = ["ifp-time-numerator", "ifp-beta-numerator", "ifp-denominator"]
+    model.tallies = [tally]
 
     return model
 
