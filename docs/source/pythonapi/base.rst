@@ -133,6 +133,7 @@ Constructing Tallies
    openmc.EnergyFilter
    openmc.EnergyoutFilter
    openmc.MuFilter
+   openmc.MuSurfaceFilter
    openmc.PolarFilter
    openmc.AzimuthalFilter
    openmc.DistribcellFilter
@@ -142,18 +143,30 @@ Constructing Tallies
    openmc.SpatialLegendreFilter
    openmc.SphericalHarmonicsFilter
    openmc.TimeFilter
+   openmc.WeightFilter
    openmc.ZernikeFilter
    openmc.ZernikeRadialFilter
+   openmc.ParentNuclideFilter
    openmc.ParticleFilter
+   openmc.MeshMaterialVolumes
+   openmc.Trigger
+   openmc.TallyDerivative
+   openmc.Tally
+   openmc.Tallies
+
+Meshes
+------
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+   :template: myclassinherit.rst
+
    openmc.RegularMesh
    openmc.RectilinearMesh
    openmc.CylindricalMesh
    openmc.SphericalMesh
    openmc.UnstructuredMesh
-   openmc.Trigger
-   openmc.TallyDerivative
-   openmc.Tally
-   openmc.Tallies
 
 Geometry Plotting
 -----------------
@@ -164,7 +177,8 @@ Geometry Plotting
    :template: myclass.rst
 
    openmc.Plot
-   openmc.ProjectionPlot
+   openmc.WireframeRayTracePlot
+   openmc.SolidRayTracePlot
    openmc.Plots
 
 Running OpenMC
@@ -190,6 +204,7 @@ Post-processing
    :template: myclass.rst
 
    openmc.Particle
+   openmc.ParticleList
    openmc.ParticleTrack
    openmc.StatePoint
    openmc.Summary

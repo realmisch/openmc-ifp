@@ -892,13 +892,12 @@ void score_general_ce_nonanalog(Particle& p, int i_tally, int start_index,
       break;
 
     case SCORE_IFP_TIME_NUM:
-      if (settings::ifp) {
+      if (settings::ifp_on) {
         if ((p.type() == Type::neutron) && (p.fission())) {
           if (is_generation_time_or_both()) {
             const auto& lifetimes =
               simulation::ifp_source_lifetime_bank[p.current_work() - 1];
-            int n_generation = static_cast<int>(lifetimes.size());
-            if (n_generation == settings::ifp_n_generation) {
+            if (lifetimes.size() == settings::ifp_n_generation) {
               score = lifetimes[0] * p.wgt_last();
             }
           }
@@ -907,13 +906,12 @@ void score_general_ce_nonanalog(Particle& p, int i_tally, int start_index,
       break;
 
     case SCORE_IFP_BETA_NUM:
-      if (settings::ifp) {
+      if (settings::ifp_on) {
         if ((p.type() == Type::neutron) && (p.fission())) {
           if (is_beta_effective_or_both()) {
             const auto& delayed_groups =
               simulation::ifp_source_delayed_group_bank[p.current_work() - 1];
-            int n_generation = static_cast<int>(delayed_groups.size());
-            if (n_generation == settings::ifp_n_generation) {
+            if (delayed_groups.size() == settings::ifp_n_generation) {
               if (delayed_groups[0] > 0) {
                 if (tally.delayedgroup_filter_ != C_NONE) {
                   filter_index = delayed_groups[0] - 1;
@@ -927,19 +925,19 @@ void score_general_ce_nonanalog(Particle& p, int i_tally, int start_index,
       break;
 
     case SCORE_IFP_DENOM:
-      if (settings::ifp) {
+      if (settings::ifp_on) {
         if ((p.type() == Type::neutron) && (p.fission())) {
-          int n_generation;
+          int ifp_data_size;
           if (is_beta_effective_or_both()) {
-            n_generation = static_cast<int>(
+            ifp_data_size = static_cast<int>(
               simulation::ifp_source_delayed_group_bank[p.current_work() - 1]
                 .size());
           } else {
-            n_generation = static_cast<int>(
+            ifp_data_size = static_cast<int>(
               simulation::ifp_source_lifetime_bank[p.current_work() - 1]
                 .size());
           }
-          if (n_generation == settings::ifp_n_generation) {
+          if (ifp_data_size == settings::ifp_n_generation) {
             score = p.wgt_last();
           }
         }
@@ -1020,14 +1018,9 @@ void score_general_ce_nonanalog(Particle& p, int i_tally, int start_index,
           // The energy deposited is the difference between the pre-collision
           // and post-collision energy...
           score = E - p.E();
-
           // ...less the energy of any secondary particles since they will be
           // transported individually later
-          const auto& bank = p.secondary_bank();
-          for (auto it = bank.end() - p.n_bank_second(); it < bank.end();
-               ++it) {
-            score -= it->E;
-          }
+          score -= p.bank_second_E();
 
           score *= p.wgt_last();
         } else {
@@ -1556,13 +1549,9 @@ void score_general_ce_analog(Particle& p, int i_tally, int start_index,
         // The energy deposited is the difference between the pre-collision and
         // post-collision energy...
         score = E - p.E();
-
         // ...less the energy of any secondary particles since they will be
         // transported individually later
-        const auto& bank = p.secondary_bank();
-        for (auto it = bank.end() - p.n_bank_second(); it < bank.end(); ++it) {
-          score -= it->E;
-        }
+        score -= p.bank_second_E();
 
         score *= p.wgt_last();
       }

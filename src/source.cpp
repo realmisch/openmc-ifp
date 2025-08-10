@@ -4,7 +4,7 @@
 #define HAS_DYNAMIC_LINKING
 #endif
 
-#include <algorithm> // for move
+#include <utility> // for move
 
 #ifdef HAS_DYNAMIC_LINKING
 #include <dlfcn.h> // for dlopen, dlsym, dlclose, dlerror
@@ -44,7 +44,10 @@ namespace openmc {
 namespace model {
 
 vector<unique_ptr<Source>> external_sources;
-}
+
+DiscreteIndex external_sources_probability;
+
+} // namespace model
 
 //==============================================================================
 // Source implementation
@@ -594,20 +597,6 @@ void initialize_source()
 
     // sample external source distribution
     simulation::source_bank[i] = sample_external_source(&seed);
-
-    // Initialize IFP data
-    if (settings::ifp) {
-      if (settings::ifp_parameter == IFPParameter::BetaEffective ||
-          settings::ifp_parameter == IFPParameter::Both) {
-        vector<int> ifp_delayed_groups;
-        simulation::ifp_source_delayed_group_bank[i] = ifp_delayed_groups;
-      }
-      if (settings::ifp_parameter == IFPParameter::GenerationTime ||
-          settings::ifp_parameter == IFPParameter::Both) {
-        vector<double> ifp_lifetimes;
-        simulation::ifp_source_lifetime_bank[i] = ifp_lifetimes;
-      }
-    }
   }
 
   // Write out initial source
@@ -622,25 +611,28 @@ void initialize_source()
 
 SourceSite sample_external_source(uint64_t* seed)
 {
-  // Determine total source strength
-  double total_strength = 0.0;
-  for (auto& s : model::external_sources)
-    total_strength += s->strength();
-
   // Sample from among multiple source distributions
   int i = 0;
-  if (model::external_sources.size() > 1) {
-    double xi = prn(seed) * total_strength;
-    double c = 0.0;
-    for (; i < model::external_sources.size(); ++i) {
-      c += model::external_sources[i]->strength();
-      if (xi < c)
-        break;
+  int n_sources = model::external_sources.size();
+  if (n_sources > 1) {
+    if (settings::uniform_source_sampling) {
+      i = prn(seed) * n_sources;
+    } else {
+      i = model::external_sources_probability.sample(seed);
     }
   }
 
   // Sample source site from i-th source distribution
   SourceSite site {model::external_sources[i]->sample_with_constraints(seed)};
+
+  // For uniform source sampling, multiply the weight by the ratio of the actual
+  // probability of sampling source i to the biased probability of sampling
+  // source i, which is (strength_i / total_strength) / (1 / n)
+  if (n_sources > 1 && settings::uniform_source_sampling) {
+    double total_strength = model::external_sources_probability.integral();
+    site.wgt *=
+      model::external_sources[i]->strength() * n_sources / total_strength;
+  }
 
   // If running in MG, convert site.E to group
   if (!settings::run_CE) {

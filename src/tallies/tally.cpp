@@ -39,7 +39,8 @@
 #include <fmt/core.h>
 
 #include <algorithm> // for max
-#include <cstddef>   // for size_t
+#include <cassert>
+#include <cstddef> // for size_t
 #include <string>
 
 namespace openmc {
@@ -140,7 +141,7 @@ Tally::Tally(pugi::xml_node node)
   // Check for the presence of certain filter types
   bool has_energyout = energyout_filter_ >= 0;
   int particle_filter_index = C_NONE;
-  for (gsl::index j = 0; j < filters_.size(); ++j) {
+  for (int64_t j = 0; j < filters_.size(); ++j) {
     int i_filter = filters_[j];
     const auto& f = model::tally_filters[i_filter].get();
 
@@ -180,39 +181,42 @@ Tally::Tally(pugi::xml_node node)
   }
 
   // Set IFP if needed
-  if (!settings::ifp) {
+  if (!settings::ifp_on) {
+    // Determine if this tally has an IFP score
+    bool has_ifp_score = false;
     for (int score : scores_) {
-      switch (score) {
-      case SCORE_IFP_TIME_NUM:
-      case SCORE_IFP_BETA_NUM:
-      case SCORE_IFP_DENOM:
-        if (settings::run_mode == RunMode::EIGENVALUE) {
-          if (settings::ifp_n_generation < 0) {
-            settings::ifp_n_generation = DEFAULT_IFP_N_GENERATION;
-            warning(fmt::format(
-              "{} generations will be used for IFP (default value). It can be "
-              "changed using the 'ifp_n_generation' settings.",
-              settings::ifp_n_generation));
-          }
-          if (settings::ifp_n_generation > settings::n_inactive) {
-            fatal_error("'ifp_n_generation' must be lower than or equal to the "
-                        "number of inactive cycles.");
-          }
-          settings::ifp = true;
-        } else {
-          fatal_error(
-            "Iterated Fission Probability can only be used in an eigenvalue "
-            "calculation.");
-        }
-        goto exit_for_loop;
+      if (score == SCORE_IFP_TIME_NUM || score == SCORE_IFP_BETA_NUM ||
+          score == SCORE_IFP_DENOM) {
+        has_ifp_score = true;
         break;
       }
     }
+
+    // Check for errors
+    if (has_ifp_score) {
+      if (settings::run_mode == RunMode::EIGENVALUE) {
+        if (settings::ifp_n_generation < 0) {
+          settings::ifp_n_generation = DEFAULT_IFP_N_GENERATION;
+          warning(fmt::format(
+            "{} generations will be used for IFP (default value). It can be "
+            "changed using the 'ifp_n_generation' settings.",
+            settings::ifp_n_generation));
+        }
+        if (settings::ifp_n_generation > settings::n_inactive) {
+          fatal_error("'ifp_n_generation' must be lower than or equal to the "
+                      "number of inactive cycles.");
+        }
+        settings::ifp_on = true;
+      } else {
+        fatal_error(
+          "Iterated Fission Probability can only be used in an eigenvalue "
+          "calculation.");
+      }
+    }
   }
-exit_for_loop:;
 
   // Set IFP parameters if needed
-  if (settings::ifp) {
+  if (settings::ifp_on) {
     for (int score : scores_) {
       switch (score) {
       case SCORE_IFP_TIME_NUM:
@@ -400,7 +404,7 @@ Tally* Tally::create(int32_t id)
 
 void Tally::set_id(int32_t id)
 {
-  Expects(id >= 0 || id == C_NONE);
+  assert(id >= 0 || id == C_NONE);
 
   // Clear entry in tally map if an ID was already assigned before
   if (id_ != C_NONE) {
@@ -456,7 +460,7 @@ bool Tally::has_filter(FilterType filter_type) const
   return false;
 }
 
-void Tally::set_filters(gsl::span<Filter*> filters)
+void Tally::set_filters(span<Filter*> filters)
 {
   // Clear old data.
   filters_.clear();
@@ -553,7 +557,8 @@ void Tally::set_scores(const vector<std::string>& scores)
   for (auto score_str : scores) {
     // Make sure a delayed group filter wasn't used with an incompatible score.
     if (delayedgroup_filter_ != C_NONE) {
-      if (score_str != "delayed-nu-fission" && score_str != "decay-rate" && score_str != "ifp-beta-numerator")
+      if (score_str != "delayed-nu-fission" && score_str != "decay-rate" &&
+          score_str != "ifp-beta-numerator")
         fatal_error("Cannot tally " + score_str + "with a delayedgroup filter");
     }
 
@@ -774,7 +779,7 @@ void Tally::init_triggers(pugi::xml_node node)
       } else {
         int i_score = 0;
         for (; i_score < this->scores_.size(); ++i_score) {
-          if (reaction_name(this->scores_[i_score]) == score_str)
+          if (this->scores_[i_score] == reaction_type(score_str))
             break;
         }
         if (i_score == this->scores_.size()) {
@@ -812,9 +817,7 @@ void Tally::accumulate()
     // Calculate total source strength for normalization
     double total_source = 0.0;
     if (settings::run_mode == RunMode::FIXED_SOURCE) {
-      for (const auto& s : model::external_sources) {
-        total_source += s->strength();
-      }
+      total_source = model::external_sources_probability.integral();
     } else {
       total_source = 1.0;
     }
@@ -1429,7 +1432,7 @@ extern "C" int openmc_tally_set_filters(
   try {
     // Convert indices to filter pointers
     vector<Filter*> filters;
-    for (gsl::index i = 0; i < n; ++i) {
+    for (int64_t i = 0; i < n; ++i) {
       int32_t i_filt = indices[i];
       filters.push_back(model::tally_filters.at(i_filt).get());
     }
